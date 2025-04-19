@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: tailresume-app
+    ports:
+      - "8080:80"    # Expose port 8080 to host machine
+    volumes:
+      - ./php:/var/www/html   # Mount PHP files
+      - ./node:/app           # Mount Node.js files for Tailwind
+      - ./nginx:/etc/nginx    # Mount Nginx config files
+
+  tailwind:
+    image: node:18-alpine
+    container_name: tailresume-tailwind
+    working_dir: /app
+    volumes:
+      - ./node:/app
+    command: sh -c "npm install && npm run build"   # Build Tailwind CSS once
+    # No need for 'depends_on' because it doesn't need to wait for the app service.
+    entrypoint: /bin/sh -c "npm install && npm run build && exit"  # Exit after build
