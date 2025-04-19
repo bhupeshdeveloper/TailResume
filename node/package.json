@@ -1,11 +1,12 @@
 {
-  "name": "tailwind-php",
+  "name": "tailresume",
   "version": "1.0.0",
-  "devDependencies": {
-    "autoprefixer": "^10.4.0",
-    "tailwindcss": "^3.0.0"
-  },
   "scripts": {
-    "build": "npx tailwindcss -i ./input.css -o ./dist/output.css --minify"
+    "build": "tailwindcss -i input.css -o dist/output.css --minify"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.2",
+    "postcss": "^8.4.21",
+    "autoprefixer": "^10.4.14"
   }
 }

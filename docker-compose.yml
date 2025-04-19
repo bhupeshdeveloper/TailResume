@@ -3,18 +3,11 @@ services:
     build: .
     container_name: tailresume-app
     ports:
-      - "8080:80"
+      - "8080:80"             # map host 8080 → container 80
     volumes:
-      - ./php:/var/www/html
-      - ./nginx:/etc/nginx
-      - ./node/output.css:/var/www/html/assets/css/style.css
-    depends_on:
-      - tailwind
+      - ./php:/var/www/html   # mount your PHP app for live edits (optional)
+    networks:
+      - appnet
 
-  tailwind:
-    image: node:18-alpine
-    container_name: tailresume-tailwind
-    working_dir: /app
-    volumes:
-      - ./node:/app
-    command: sh -c "npm install && npm run build"
+networks:
+  appnet:

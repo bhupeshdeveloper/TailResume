@@ -1,21 +1,36 @@
-# Dockerfile
-FROM php:8.2-fpm
+# 1) Build Tailwind CSS
+FROM node:18-alpine AS tailwind
+WORKDIR /app
 
-# Install dependencies
-RUN apt-get update && apt-get install -y nginx curl unzip libpng-dev libjpeg-dev libfreetype6-dev
+# copy package.json + install deps
+COPY node/package*.json ./
+RUN npm ci
 
-# Configure working directory
-WORKDIR /var/www/html
+# copy config & input, build CSS
+COPY node/tailwind.config.js node/postcss.config.js node/input.css ./
+RUN npx tailwindcss -i input.css -o dist/output.css --minify
 
-# Copy PHP files
-COPY ./php /var/www/html
+# 2) Final image: PHP‑FPM + Nginx
+FROM php:8.4-fpm-alpine
 
-# Copy Nginx config
-COPY ./nginx/nginx.conf /etc/nginx/nginx.conf
-COPY ./nginx/conf.d /etc/nginx/conf.d
+# install nginx (pulls in /etc/nginx/mime.types)
+RUN apk add --no-cache nginx
 
-# Expose ports
+# copy compiled CSS into your webroot
+#COPY --from=tailwind /app/dist/output.css /var/www/html/assets/css/style.css
+
+# copy your PHP app
+COPY php/ /var/www/html/
+
+# copy Nginx config
+COPY nginx/nginx.conf /etc/nginx/nginx.conf
+COPY nginx/conf.d/ /etc/nginx/conf.d/
+
+# ensure log & run dirs exist
+RUN mkdir -p /run/nginx
+
+# expose port 80
 EXPOSE 80
 
-# Start PHP-FPM and Nginx
-CMD service php8.2-fpm start && nginx -g 'daemon off;'
+# start PHP‑FPM (background) and Nginx (foreground)
+CMD ["sh","-c","php-fpm -D && nginx -g 'daemon off;'"]
